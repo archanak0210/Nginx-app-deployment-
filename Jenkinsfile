@@ -1,23 +1,59 @@
-pipeline {
-    agent any // or a specific agent with kubectl installed and configured
+  pipeline {
+    agent any
+
+     environment {
+        IMAGE_NAME = 'my_nginx'
+        IMAGE_TAG  ='v1'
+        DOCKER_USER = 'archanaadmin02'
+      }
+      
     stages {
-        stage('Check K8s Connectivity') {
-            steps {
-                script {
-                    try {
-                        // Execute kubectl command to get namespaces and capture the output
-                        def output = sh(script: 'sudo kubectl get namespaces', returnStdout: true).trim()
-                        echo "Successfully connected to Kubernetes cluster."
-                        echo "Namespaces found: ${output}"
-                    } catch (Exception e) {
-                        // Handle the error if the command fails
-                        echo "Failed to connect to Kubernetes cluster or execute kubectl command."
-                        echo "Error: ${e.getMessage()}"
-                        // Fail the stage explicitly if needed
-                        // error "Kubernetes connectivity test failed."
-                    }
-                }
-            }
+     stage('Clone repo') {
+       steps {
+         sh 'rm -rf Nginx-app-deployment'
+         sh 'echo "Cloning a repo..."'
+         sh 'git clone https://github.com/archanak0210/Nginx-app-deployment.git'
+       }
+     }
+     
+      stage('Build Docker Image') {
+         steps {
+           sh """
+             echo "--- Checking Docker Access ---"
+             id
+             whoami
+             groups
+             ls -l /var/run/docker.sock
+
+             echo "---- Building the Docker Image ---"
+             cd Nginx-app-deployment
+             docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -f Dockerfile .
+           """
         }
-    }
-}
+      }
+
+      stage('Docker Login & Push') {
+        steps {
+          withCredentials([usernameColonPassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USERNAME')]) {
+            sh """
+              echo "--- Logging into Docker Hub ---"
+              echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+              echo "---Tagging and Pushing Image ---"
+              docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
+              docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
+            """
+           }
+         }
+       }
+     }
+
+     post {
+       success {
+         echo "Docker image ${DOCKER_USER}/${IMAGE_NAME}:${IMAGE_TAG} pushed successfully!"
+       }
+       failure {
+         echo "Build or push failed. check logs above."
+        }
+      }
+   }  
