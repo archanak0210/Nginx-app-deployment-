@@ -7,7 +7,7 @@
         DOCKER_USER = 'archanaadmin02'
         CHART_NAME="nginx-app"
         CHART_PATH = 'nginx-app'
-        RELEASE_NAME="production-app"
+        RELEASE_NAME="nginxv7-app"
         NAMESPACE="nginx"
       }
       
