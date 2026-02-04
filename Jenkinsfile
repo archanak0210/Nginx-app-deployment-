@@ -7,7 +7,7 @@ pipeline {
         DOCKER_USER = 'archanaadmin02'
         CHART_NAME="nginx-app"
         CHART_PATH = 'nginx-app'
-        RELEASE_NAME="nginx-app"
+        RELEASE_NAME="nginx"
         NAMESPACE="nginx"
       }
       
