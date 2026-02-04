@@ -3,11 +3,11 @@
 
      environment {
         IMAGE_NAME = 'my_nginximage'
-        IMAGE_TAG  ='v'
+        IMAGE_TAG  ='v1'
         DOCKER_USER = 'archanaadmin02'
         CHART_NAME="nginx-app"
         CHART_PATH = 'nginx-app'
-        RELEASE_NAME="nginxv7-app"
+        RELEASE_NAME="nginx-app"
         NAMESPACE="nginx"
       }
       
@@ -60,6 +60,49 @@
          echo "Build or push failed. check logs above."
         }
       }
-   }  
+   } 
+    stage('Deploy to Kubernetes') {
+            steps {
+              script {
+                echo "---Deploying image using Helm ---"
+                sh 'kubectl create ns ${NAMESPACE}'
+                sh 'sudo helm upgrade --install ${RELEASE_NAME} ${CHART_PATH} -n ${NAMESPACE}'
+            }
+        }
+    }    
+       post {
+       success {
+         echo "Docker image ${DOCKER_USER}/${IMAGE_NAME}:${IMAGE_TAG} pushed successfully!"
+       }
+       failure {
+         echo "Build or push failed. check logs above."
+             stage('Verify Deployment') {
+                steps {
+                   script {
+                    echo "---Verifying deployment---"
+                    sh """
+                        sudo kubectl rollout status deployment/${RELEASE_NAME} -n ${NAMESPACE}
+                        sudo kubectl get pods -n ${NAMESPACE}
+                        kubectl get svc -n ${NAMESPACE}
+                        curl http://192.168.49.2:30008
+                    echo "---application access outside of cluster"
+                         kubectl port-forward service/nginx-service -n ${NAMESPACE} 30008:80
+                    """    
+                   }   
+                }         
+            }
+                  post {
+                     always {
+                         echo "Deployment Pipeline Completed."
+                     }
+                     success {
+                         echo "Nginx application deployed successfully!"
+                     }
+                     failure {
+                        echo "Deployment failed. Please check the logs."
+                }
+             }
+          }
 
-   stage
+
+       
