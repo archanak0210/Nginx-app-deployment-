@@ -65,7 +65,7 @@ pipeline {
              sh """
                echo "---Deploying image using Helm ---"
                sudo kubectl create ns ${NAMESPACE}
-               sudo helm install ${RELEASE_NAME} nginx-repo/nginx-app -n ${NAMESPACE}
+               sudo helm upgrade --install ${RELEASE_NAME} nginx-repo/nginx-app -n ${NAMESPACE}
                echo "NGINX application deployed successfully!"
         """
          }
@@ -78,6 +78,9 @@ pipeline {
                 sudo kubectl get pods -n ${NAMESPACE}
                 sudo kubectl get svc -n ${NAMESPACE}
                 sudo helm list -n nginx
+                echo "---http://192.168.49.2:30008--- access URL within minikube cluster---"
+                echo "---access URL outside of minikube cluster run command with archanaadmin login---"
+                echo " ---minikube service nginx-service -n nginx --url---"
            """
             }
         }
@@ -89,9 +92,6 @@ pipeline {
         }
      success {
         echo "Nginx application deployed successfully!"
-        echo "---http://192.168.49.2:30008--- access URL within minikube cluster---"
-        echo "---access URL outside of minikube cluster run command with archanaadmin login---"
-        echo " ---minikube service nginx-service -n nginx --url---"
         }
       failure {
          echo "Deployment failed. Please check the logs."
