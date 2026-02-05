@@ -74,7 +74,7 @@ pipeline {
           steps {
             sh """
                 echo "---Verifying deployment---"
-                kubectl get deplyoment -n ${NAMESPACE}
+                kubectl get deployment -n ${NAMESPACE}
                 sudo kubectl get pods -n ${NAMESPACE}
                 kubectl get svc -n ${NAMESPACE}
                 curl http://192.168.49.2:30008
@@ -84,4 +84,16 @@ pipeline {
              }
           }
       }
-  }
+    
+  post {
+     always {
+        echo "Deployment Pipeline Completed."
+        }
+     success {
+        echo "Nginx application deployed successfully!"
+        }
+      failure {
+         echo "Deployment failed. Please check the logs."
+        }
+    }
+}
