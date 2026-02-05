@@ -8,7 +8,7 @@ pipeline {
         CHART_NAME="nginx-app"
         CHART_PATH="./nginx-app/"
         CHART_DIR_NAME = 'nginx-app'
-        RELEASE_NAME="nginx"
+        RELEASE_NAME="NGINX"
         NAMESPACE="nginx"
       }
       
@@ -53,23 +53,20 @@ pipeline {
          }
        }
 
-        stage('Build & Package Helm Chart')
-          steps }
-             sh 'helm template ${CHART_PATH} --set image.tag=${IMAGE_TAG}'
-             sh 'helm package ${CHART_PATH} --version ${IMAGE_TAG}"'
-           
-      
-        
+        stage('Add Helm Repo') {   
+            steps {
+             sh 'sudo helm repo add nginx-repo https://archanak0210.github.io/helm-nginx-chart/'  
+             sh 'helm repo update'
+            }
+        }
         
         stage('Deploy to Kubernetes') {
           steps {
              sh """
                echo "---Deploying image using Helm ---"
                sudo kubectl create ns ${NAMESPACE}
-               sudo export CHART_PATH="./nginx-app/"
-               sudo helm lint $CHART_PATH
-               sudo helm package $CHART_PATH
-               sudo helm install ${RELEASE_NAME} ${CHART_NAME} -n ${NAMESPACE}
+               sudo helm install {RELEASE_NAME} nginx-repo/nginx-app -n ${NAMESPACE}
+               echo "NGINX application deployed successfully!"
         """
          }
       }   
@@ -77,12 +74,12 @@ pipeline {
           steps {
             sh """
                 echo "---Verifying deployment---"
-                sudo kubectl rollout status deployment/${RELEASE_NAME} -n ${NAMESPACE}
+                sudokubectl rollout status deployment/${RELEASE_NAME} -n ${NAMESPACE}
                 sudo kubectl get pods -n ${NAMESPACE}
                 sudo kubectl get svc -n ${NAMESPACE}
                 sudo curl http://192.168.49.2:30008
-                echo "---application access outside of cluster"
-                sudo kubectl port-forward service/nginx-service -n ${NAMESPACE} 30008:80
+                echo "---URL to access outside of cluster"
+                minikube service nginx-service -n nginx --url
             """            
              }
           }
