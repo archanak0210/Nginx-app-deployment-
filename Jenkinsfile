@@ -75,7 +75,7 @@ pipeline {
             sh """
                 echo "---Verifying deployment---"
                 kubectl get deplyoment -n ${NAMESPACE}
-                kubectl get pods -n ${NAMESPACE}
+                sudo kubectl get pods -n ${NAMESPACE}
                 kubectl get svc -n ${NAMESPACE}
                 curl http://192.168.49.2:30008
                 echo "---URL to access outside of cluster"
