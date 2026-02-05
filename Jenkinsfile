@@ -8,7 +8,7 @@ pipeline {
         CHART_NAME="nginx-app"
         CHART_PATH="./nginx-app/"
         CHART_DIR_NAME = 'nginx-app'
-        RELEASE_NAME="nginx_prod"
+        RELEASE_NAME= 'nginx_prod'
         NAMESPACE="nginx"
       }
       
