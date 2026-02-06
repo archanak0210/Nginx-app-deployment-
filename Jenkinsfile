@@ -90,7 +90,7 @@ pipeline {
         echo "Nginx application deployed successfully!"
         echo "http://192.168.49.2:30008 access URL within minikube cluster---"
         echo "access URL outside of minikube cluster run command with user:archanaadmin"
-        echo "minikube service nginx-service -n nginx --url"
+        echo "minikube service name -n nginx --url"
         }
       failure {
          echo "Deployment failed. Please check the logs."
